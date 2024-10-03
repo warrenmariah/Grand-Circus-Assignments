@@ -124,3 +124,24 @@ CREATE TABLE oops (
 );
 
 DROP TABLE oops;
+
+SELECT subscription_level, COUNT(*) FROM meals
+GROUP BY subscription_level;
+
+SELECT subscription_level, AVG(price) AS "Average Price" FROM meals
+GROUP BY subscription_level;
+
+SELECT is_vegetarian, AVG(calories) AS "Average Calories" FROM meals
+GROUP BY is_vegetarian;
+
+SELECT subscription_level, MIN(price) AS "Cheapest Meal" FROM meals
+GROUP BY subscription_level;
+
+SELECT state, COUNT(*) AS "customer count" FROM customers
+GROUP BY state
+ORDER BY state;
+
+SELECT state, COUNT(*) AS "customer count" FROM customers
+GROUP BY state
+HAVING COUNT(*) >= 5
+ORDER BY COUNT(*) DESC;
