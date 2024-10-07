@@ -1,0 +1,71 @@
+CREATE TABLE member(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(40),
+	card_number CHAR(10)
+);
+
+CREATE TABLE book(
+	id SERIAL PRIMARY KEY,
+	title VARCHAR(60),
+	author VARCHAR(60),
+	checked_out_by_id INT REFERENCES member
+);
+
+insert into member(name, card_number) values
+('Annabelle Aster', '772-93-110'),
+('Boris Berceli', '000-00-000'),
+('Carter Corbin', '282-09-382');
+
+insert into book(title, author, checked_out_by_id) values
+('In Search of Lost Time', 'Marcel Proust', 1),
+('Ulysses', 'James Joyce', 1),
+('Don Quixote', 'Miguel de Cervantes', 3),
+('Moby Dick', 'Herman Melville', null);
+
+update member
+set card_number = '357-15-964'
+where id = 2;
+
+delete from member where id = 2;
+
+select * from member where card_number = '772-93-110';
+
+select * from book order by title;
+
+update book
+set checked_out_by_id = 1
+where title = 'Moby Dick';
+
+update book
+set checked_out_by_id = null
+where title = 'Ulysses';
+
+select * from book left join member on book.checked_out_by_id = member.id;
+
+select title from book left join member on book.checked_out_by_id = member.id
+where checked_out_by_id = 1;
+
+select name, card_number from member join book on member.id = book.checked_out_by_id
+where author = 'Herman Melville';
+
+INSERT INTO member (name, card_number) VALUES
+('Dewi Djoyosuroto', '291-32-093'),
+('Erika Espinoza', '332-94-212');
+
+INSERT INTO book (title, author, checked_out_by_id) VALUES
+('Anna Karenina', 'Leo Tolstoy', 4),
+('Crime and Punishment', 'Fyodor Dostoevsky', NULL),
+('Pride and Prejudice', 'Jane Austen', NULL),
+('War and Peace', 'Leo Tolstoy', NULL),
+('The Brothers Karamazov', 'Fyodor Dostoevsky', 1),
+('Alice''s Adventures in Wonderland', 'Lewis Carroll', 3);
+
+select author, count(title) from book group by author;
+
+select author, count(title) from book group by author 
+having count(title) >= 2;
+
+select member.name, count(book.title) as "books_checked_out"
+from book
+right join member on book.checked_out_by_id = member.id
+group by name;
