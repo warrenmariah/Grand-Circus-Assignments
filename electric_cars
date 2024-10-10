@@ -1,0 +1,144 @@
+CREATE TABLE evCars (
+    CarID SERIAL PRIMARY KEY,            -- Auto-incrementing ID for each car
+    Brand VARCHAR(50),                   -- Car brand, e.g., Tesla
+    Model VARCHAR(100),                  -- Car model, e.g., Model 3 Long Range Dual Motor
+    Accel VARCHAR(20),                   -- Acceleration, e.g., 4.6 sec
+    TopSpeed VARCHAR(20),                -- Top speed, e.g., 233 km/h
+    Range VARCHAR(20),                   -- Range in km, e.g., 450 km
+    Efficiency VARCHAR(20),              -- Efficiency in Wh/km, e.g., 161 Wh/km
+    FastCharge VARCHAR(50),              -- Fast charge speed, e.g., 940 km/h
+    RapidCharge VARCHAR(50),             -- Indicates if rapid charging is possible
+    PowerTrain VARCHAR(50),              -- Powertrain type, e.g., All Wheel Drive
+    PlugType VARCHAR(50),                -- Plug type, e.g., Type 2 CCS
+    BodyStyle VARCHAR(50),               -- Body style, e.g., Sedan
+    Segment VARCHAR(10),                 -- Segment category, e.g., D
+    Seats INT,                           -- Number of seats, e.g., 5
+    PriceEuro INT                        -- Price in Euros, e.g., 55480
+);
+
+select * from evCars;
+
+--1
+update evCars 
+set brand = trim(trailing from brand) 
+where length(trim(trailing from brand)) <> length(brand);
+
+update evCars
+set model = trim(trailing from model)
+where length(trim(trailing from model)) <> length(model);
+
+--2
+update evCars 
+set powertrain = 'AWD'
+where powertrain = 'All Wheel Drive';
+
+update evCars
+set powertrain = 'RWD'
+where powertrain = 'Rear Wheel Drive';
+
+update evCars
+set powertrain = 'FWD'
+where powertrain = 'Front Wheel Drive';
+
+--3
+select topspeed from evCars;
+
+--4
+alter table evCars add column "TopSpeedKPH" INT;
+
+--5
+update evCars
+set topspeed = regexp_replace(topspeed, '[[:alpha:]]', '', 'g');
+
+update evCars
+set topspeed = regexp_replace(topspeed, '[^\w]+', '');
+
+alter table evCars alter column topspeed type INT using topspeed::integer;
+
+update evCars set "TopSpeedKPH" = topspeed;
+
+--6
+select powertrain, count(carid), avg("TopSpeedKPH") from evCars group by powertrain;
+
+--7
+select avg("TopSpeedKPH") from evCars;
+
+select model 
+from evCars
+where model in (
+	select model
+	from evCars
+	group by model
+	having avg("TopSpeedKPH") > 179
+);
+
+--8
+select avg(priceeuro) from evCars;
+
+select brand, avg(priceeuro) from evCars group by brand;
+
+select model
+from evCars
+where model in (
+	select model
+	from evCars
+	group by model, brand
+	having avg(priceeuro) > 55811.56
+);
+
+--9
+with PriceByBrand as (
+	select brand, avg(priceeuro) as avg_price
+	from evCars
+	group by brand
+	order by avg_price desc
+)
+select brand, avg_price
+from PriceByBrand
+where avg_price > 80000;
+
+--10
+create table features (
+	feature_id SERIAL PRIMARY KEY,
+	feature_name VARCHAR(50)
+);
+
+create table car_features (
+	car_id INT,
+	feature_id INT,
+	FOREIGN KEY (car_id) REFERENCES evCars(carid),
+	FOREIGN KEY (feature_id) REFERENCES features(feature_id)
+);
+
+insert into features(feature_name) values
+('Autonomous Driving'),
+('Adaptive Cruise Control'),
+('Parking Assist'),
+('Head-up Display');
+
+insert into car_features(car_id, feature_id) values
+(1, 1), --Car 1 has Autonomous Driving
+(1, 2), --Car 1 has Adaptive Cruise Control
+(1, 3), --Car 1 has Parking Assist
+(1, 4), --Car 1 has Head-up Display
+(2, 1), --Car 2 has Autonomous Driving
+(2, 2), --Car 2 has Adaptive Cruise Control
+(2, 3), --Car 2 has Parking Assist
+(2, 4), --Car 2 has Head-up Display
+(3, 2), --Car 3 has Adaptive Cruise Control
+(3, 3), --Car 3 has Parking Assist
+(3, 4); --Car 3 has Head-up Display
+
+--11
+select evCars.model, evCars.powertrain
+from evCars
+join car_features on evCars.carid = car_features.car_id
+join features on car_features.feature_id = features.feature_id
+where features.feature_name = 'Autonomous Driving';
+
+--12
+--See Database ER diagram (crow's foot).png
+
+--13
+select * from evCars;
+--See electric_cars_cleaned.csv
